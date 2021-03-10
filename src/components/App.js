@@ -15,6 +15,7 @@ const App = () => {
   const [chars, setChars] = useState([]);
   const [name, setName] = useState("");
   const [species, setSpecies] = useState("");
+  const [location, setLocation] = useState([]);
   useEffect(() => {
     getDataFromApi().then((data) => setChars(data));
   }, []);
@@ -22,13 +23,27 @@ const App = () => {
   const handleFilter = (inputChange) => {
     if (inputChange.key === "name") {
       setName(inputChange.value);
-      console.log(name);
     }
     if (inputChange.key === "species") {
       setSpecies(inputChange.value);
-      console.log(species);
+    }
+    if (inputChange.key === "location") {
+      const indexLocation = location.indexOf(inputChange.value);
+      if (indexLocation === -1) {
+        const newLocations = [...location, inputChange.value];
+        setLocation(newLocations);
+      } else {
+        const newLocations = location.filter((location) => {
+          return location !== inputChange.value;
+        });
+        setLocation(newLocations);
+      }
     }
   };
+  console.log({location});
+
+  const locationListRaw = chars.map((char) => char.location);
+  const locationList = [...new Set(locationListRaw)];
 
   const filteredChars = chars
     .filter((char) => {
@@ -36,6 +51,10 @@ const App = () => {
     })
     .filter((char) => {
       return char.species.includes(species);
+    })
+    .filter((char)=>{
+      if(location.length === 0) return true
+      else return (location.includes(char.location))
     })
     .sort(firstBy("status").thenBy("name"));
 
@@ -57,7 +76,7 @@ const App = () => {
       <main className="main">
         <Switch>
           <Route path="/" exact>
-            <Filters handleFilter={handleFilter} />
+            <Filters handleFilter={handleFilter} locationList={locationList} />
             <CharacterList chars={filteredChars} />
           </Route>
           <Route path="/character/:charId" render={renderCharDetail} />
